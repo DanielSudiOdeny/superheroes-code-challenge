@@ -4,50 +4,47 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-
-class HeroPower(db.Model, SerializerMixin):
-    __tablename__ = 'hero_powers'
-
-    id = db.Column(db.Integer, primary_key=True)
-    strength = db.Column(db.String, nullable=False)
-    hero_id = db.Column(db.Integer, db.ForeignKey('heroes.id'))
-    power_id = db.Column(db.Integer, db.ForeignKey('powers.id'))
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
-
-    hero = db.relationship('Hero', back_populates='hero_powers')
-    power = db.relationship('Power', back_populates='power_heroes')
-
-    @validates('strength')
-    def validate_strength(self, key, strength):
-        assert strength in ['Strong', 'Weak', 'Average']
-        return strength
-
-
-class Hero(db.Model, SerializerMixin):
-    __tablename__ = 'heroes'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    super_name = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
-
-    hero_powers = db.relationship('HeroPower', back_populates='hero')
-
-
-class Power(db.Model, SerializerMixin):
+class Power(db.Model):
     __tablename__ = 'powers'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    description = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text)
 
-    power_heroes = db.relationship('HeroPower', back_populates='power')
+    # Define the relationship from Power to HeroPower
+    hero_powers = db.relationship('HeroPower', back_populates='power')
 
-    @validates('description')
-    def validate_description(self, key, description):
-        if not description or len(description) < 20:
-            raise ValueError("Description must be atleast 20 characters")
+    # Define the relationship from Power to Hero through HeroPower
+    heroes = db.relationship(
+        'Hero', secondary='hero_powers', back_populates='powers')
+
+
+class Hero(db.Model):
+    __tablename__ = 'heroes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    super_name = db.Column(db.String(255), nullable=False)
+
+    # Define the relationship from Hero to HeroPower
+    hero_powers = db.relationship('HeroPower', back_populates='hero')
+
+    # Define the relationship from Hero to Power through HeroPower
+    powers = db.relationship(
+        'Power', secondary='hero_powers', back_populates='heroes')
+
+
+class HeroPower(db.Model):
+    __tablename__ = 'hero_powers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    hero_id = db.Column(db.Integer, db.ForeignKey('heroes.id'), nullable=False)
+    power_id = db.Column(db.Integer, db.ForeignKey(
+        'powers.id'), nullable=False)
+    strength = db.Column(db.String(255))
+
+    # Define the relationship from HeroPower to Hero
+    hero = db.relationship('Hero', back_populates='hero_powers')
+
+    # Define the relationship from HeroPower to Power
+    power = db.relationship('Power', back_populates='hero_powers')

@@ -1,56 +1,56 @@
-from random import randint, choice
+from random import choice
 from app import app, db
-from models import Hero, Power, HeroPower
-
-# List of superhero names
-superhero_names = ['Superman', 'Batman', 'Spiderman', 'Ironman', 'Thor',
-                   'Hulk', 'Captain America', 'Black Widow', 'Hawkeye', 'Starlord']
-
-# List of real names corresponding to the superhero names
-real_names = ['Clark Kent', 'Bruce Wayne', 'Peter Parker', 'Tony Stark', 'Thor Odinson',
-              'Bruce Banner', 'Steve Rogers', 'Natasha Romanoff', 'Clint Barton', 'Peter Quill']
-
-# List of powers
-powers_list = ['Super Strength', 'Flight', 'Invulnerability',
-               'Super Speed', 'Heat Vision', 'Freeze Breath']
+from models import Power, Hero, HeroPower
 
 with app.app_context():
-    db.drop_all()
-    db.create_all()
+    print("🦸‍♀ Seeding powers...")
+    powers_data = [
+        {"name": "super strength",
+            "description": "gives the wielder super-human strengths"},
+        {"name": "flight", "description": "gives the wielder the ability to fly through the skies at supersonic speed"},
+        {"name": "super human senses",
+            "description": "allows the wielder to use her senses at a super-human level"},
+        {"name": "elasticity", "description": "can stretch the human body to extreme lengths"}
+    ]
 
-    heroes = []
-    for _ in range(20):
-        hero = Hero(
-            name=choice(real_names),
-            super_name=choice(superhero_names),
-        )
-        heroes.append(hero)
-        db.session.add(hero)
-
-    powers = []
-    for _ in range(20):
-        power = Power(
-            name=choice(powers_list),
-            description=f'This power allows the hero to use {choice(powers_list).lower()}'
-        )
-        powers.append(power)
+    for data in powers_data:
+        power = Power(**data)
         db.session.add(power)
 
     db.session.commit()
 
+    print("🦸‍♀ Seeding heroes...")
+    heroes_data = [
+        {"name": "Kamala Khan", "super_name": "Ms. Marvel"},
+        {"name": "Doreen Green", "super_name": "Squirrel Girl"},
+        {"name": "Gwen Stacy", "super_name": "Spider-Gwen"},
+        {"name": "Janet Van Dyne", "super_name": "The Wasp"},
+        {"name": "Wanda Maximoff", "super_name": "Scarlet Witch"},
+        {"name": "Carol Danvers", "super_name": "Captain Marvel"},
+        {"name": "Jean Grey", "super_name": "Dark Phoenix"},
+        {"name": "Ororo Munroe", "super_name": "Storm"},
+        {"name": "Kitty Pryde", "super_name": "Shadowcat"},
+        {"name": "Elektra Natchios", "super_name": "Elektra"}
+    ]
+
+    for data in heroes_data:
+        hero = Hero(**data)
+        db.session.add(hero)
+
+    db.session.commit()
+
+    print("🦸‍♀ Adding powers to heroes...")
+
     strengths = ["Strong", "Weak", "Average"]
 
-    for hero in heroes:
-        for _ in range(1, 4):  # Randomly add up to 3 powers to each hero
-            power = choice(powers)
+    for hero in Hero.query.all():
+        for _ in range(1, 4):  
+            power = choice(Power.query.all())
             strength = choice(strengths)
-            hero_power = HeroPower(
-                hero=hero,
-                power=power,
-                strength=strength
-            )
+
+            hero_power = HeroPower(hero=hero, power=power, strength=strength)
             db.session.add(hero_power)
 
     db.session.commit()
 
-print("Seeding completed successfully.")
+    print("🦸‍♀ Done seeding!")
