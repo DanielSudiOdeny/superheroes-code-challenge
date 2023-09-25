@@ -92,26 +92,26 @@ def get_power_by_id(id):
     return response
 
 
-# @app.route('/powers/<int:id>', methods=['PATCH'])
-# def patch_power_by_id(id):
-#     power = Power.query.filter_by(id=id).first()
-#     if not power:
-#         return jsonify({'error': 'Power not found'}), 404
+@app.route('/powers/<int:id>', methods=['PATCH'])
+def patch_power_by_id(id):
+    power = Power.query.filter_by(id=id).first()
+    if not power:
+        return jsonify({'error': 'Power not found'}), 404
 
-#     for attr in request.json:
-#         setattr(power, attr, request.json.get(attr))
+    for attr in request.json:
+        setattr(power, attr, request.json.get(attr))
 
-#         db.session.add(power)
-#         db.session.commit()
+        db.session.add(power)
+        db.session.commit()
 
-#     power_dict = {
-#         'id': power.id,
-#         'name': power.name,
-#         'description': power.description,
+    power_dict = {
+        'id': power.id,
+        'name': power.name,
+        'description': power.description,
 
-#     }
-#     response = make_response(jsonify(power_dict), 200)
-#     return response
+    }
+    response = make_response(jsonify(power_dict), 200)
+    return response
 
 
 if __name__ == '__main__':
