@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
 class Power(db.Model):
     __tablename__ = 'powers'
 
@@ -17,6 +18,12 @@ class Power(db.Model):
     # Define the relationship from Power to Hero through HeroPower
     heroes = db.relationship(
         'Hero', secondary='hero_powers', back_populates='powers')
+
+    @validates('description')
+    def validate_description(self, key, description):
+        if not description or len(description) < 20:
+            raise ValueError("Description must be at least 20 characters long")
+        return description
 
 
 class Hero(db.Model):
@@ -48,3 +55,10 @@ class HeroPower(db.Model):
 
     # Define the relationship from HeroPower to Power
     power = db.relationship('Power', back_populates='hero_powers')
+
+    @validates('strength')
+    def validate_strength(self, key, strength):
+        if strength not in ('Strong', 'Weak', 'Average'):
+            raise ValueError(
+                "Strength must be one of 'Strong', 'Weak', or 'Average'")
+        return strength
