@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from models import db, Hero, Power
-from flask import Flask, jsonify, make_response
+from flask import Flask, jsonify, make_response, request
 from flask_migrate import Migrate
 
 from models import db, Hero, Power, HeroPower
@@ -15,27 +14,19 @@ migrate = Migrate(app, db)
 db.init_app(app)
 
 
-@app.route('/')
-def home():
-    return ''
+# @app.route('/')
+# def home():
+#     return ''
 
 
-@app.route('/heroes', methods=['GET'])
+@app.route('/heroes', methods=["GET"])
 def heroes():
     heroes = []
     for hero in Hero.query.all():
         hero_dict = {
+            "id": hero.id,
             "name": hero.name,
             "super_name": hero.super_name,
-            "created_at": hero.created_at,
-            "updated_at": hero.updated_at,
-            "powers": [
-                {'id': power.id,
-                 'name': power.name,
-                 'description': power.description
-                 }
-                for power in hero.powers
-            ]
         }
         heroes.append(hero_dict)
 
@@ -52,6 +43,7 @@ def hero_by_id(id):
         return jsonify({'error': "Hero not found", }, 404)
 
     hero_dict = {
+        "id": hero.id,
         "name": hero.name,
         "super_name": hero.super_name,
         "powers": [
@@ -98,6 +90,28 @@ def get_power_by_id(id):
     response = make_response(jsonify(power_dict), 200)
     response.headers['Content-Type'] = 'application/json'
     return response
+
+
+# @app.route('/powers/<int:id>', methods=['PATCH'])
+# def patch_power_by_id(id):
+#     power = Power.query.filter_by(id=id).first()
+#     if not power:
+#         return jsonify({'error': 'Power not found'}), 404
+
+#     for attr in request.json:
+#         setattr(power, attr, request.json.get(attr))
+
+#         db.session.add(power)
+#         db.session.commit()
+
+#     power_dict = {
+#         'id': power.id,
+#         'name': power.name,
+#         'description': power.description,
+
+#     }
+#     response = make_response(jsonify(power_dict), 200)
+#     return response
 
 
 if __name__ == '__main__':
