@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from flask import request, jsonify, make_response
 from flask import Flask, jsonify, make_response, request
 from flask_migrate import Migrate
 
@@ -113,6 +114,50 @@ def patch_power_by_id(id):
     response = make_response(jsonify(power_dict), 200)
     return response
 
+
+# ... (other imports)
+
+
+@app.route('/hero_powers', methods=['POST'])
+def create_hero_power():
+    data = request.get_json()
+
+    # Validate the required fields
+    if "strength" not in data or "power_id" not in data or "hero_id" not in data:
+        return jsonify({"errors": ["strength, power_id, and hero_id fields are required"]}), 400
+
+    strength = data["strength"]
+    power_id = data["power_id"]
+    hero_id = data["hero_id"]
+
+    # Check if the Power and Hero exist
+    power = Power.query.get(power_id)
+    hero = Hero.query.get(hero_id)
+
+    if power is None or hero is None:
+        return jsonify({"errors": ["Power or Hero not found"]}), 404
+
+    # Create a new HeroPower
+    hero_power = HeroPower(strength=strength, hero=hero, power=power)
+    try:
+        db.session.add(hero_power)
+        db.session.commit()
+        hero_data = {
+            "id": hero.id,
+            "name": hero.name,
+            "super_name": hero.super_name,
+        }
+        response = make_response(
+            jsonify(hero_data),
+            200
+        )
+        return response  # Correct indentation for returning the response
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"errors": [str(e)]}), 400
+
+
+app.route('/')
 
 if __name__ == '__main__':
     app.run(port=5555)
